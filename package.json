@@ -1,6 +1,6 @@
 {
   "name": "@stefanusadhie/mariadb",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "connection to mariadb",
   "main": "index.js",
   "scripts": {
