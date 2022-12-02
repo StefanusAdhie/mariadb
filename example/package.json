@@ -6,9 +6,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [],
   "author": "stefanus adhie",
   "license": "ISC",
   "dependencies": {
-    "@stefanusadhie/mariadb": "file:.."
+    "mariadb-typescript": "file:.."
   }
 }

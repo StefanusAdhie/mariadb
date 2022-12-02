@@ -1,18 +1,25 @@
-const mariadb = require("@stefanusadhie/mariadb");
-
-const connection = mariadb({
-  host: "localhost",
-  port: "3306",
-  user: "root",
-  password: "",
-  // database: "tradepro",
-  max_reconnect: 2,
-  timeout_reconnect: 1000,
-});
+const mariadb = require("./connection/mariadb");
 
 (async () => {
-  const ping = await connection.ping();
-  // return "PONG"
+  try {
+    // check connection
+    const ping = await mariadb.ping();
+    console.log({ ping });
+    // return { ping: 'PONG' }
 
-  const connected = await connection.createConnection();
+    // create connection
+    await mariadb.createConnection();
+
+    // query
+    const user = await mariadb.query("SELECT Host, User FROM user");
+    console.log({ user });
+    // return {
+    //   user: [
+    //     RowDataPacket { Host: '%', User: 'root' },
+    //     RowDataPacket { Host: 'localhost', User: 'root' }
+    //   ]
+    // }
+  } catch (error) {
+    console.log({ error });
+  }
 })();

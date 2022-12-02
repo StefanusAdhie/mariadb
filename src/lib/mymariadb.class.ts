@@ -1,6 +1,18 @@
-"use strict";
+import mysql from "mysql";
 
-const mysql = require("mysql");
+/**
+ * @interface
+ * interface IConstructor for constructor class MyMariaDB
+ */
+interface IConstructor {
+  host: string;
+  port?: number;
+  user?: string;
+  password?: string;
+  database?: string;
+  max_reconnect?: number;
+  timeout_reconnect?: number;
+}
 
 /**
  * @author stefanus adhie
@@ -20,25 +32,28 @@ const mysql = require("mysql");
  * @param {string}  database Name of the database to use for this connection (Optional)
  */
 class MyMariaDB {
-  constructor({
-    host,
-    port,
-    user,
-    password,
-    database,
-    max_reconnect,
-    timeout_reconnect,
-  }) {
-    this.host = host || "localhost";
-    this.port = port || 3306;
-    this.user = user || "root";
-    this.password = password || "";
-    this.database = database;
-    this.connected = null;
+  host: string;
+  port: number;
+  user: string;
+  password: string;
+  database: string;
+  count_max_reconnect: number;
+  timeout_reconnect: number;
+  connected: boolean;
+  connection: any;
+  count_reconnect: number;
+
+  constructor(param: IConstructor) {
+    this.host = param.host;
+    this.port = param.port || 3306;
+    this.user = param.user || "root";
+    this.password = param.password || "";
+    this.database = param.database || "";
+    this.count_max_reconnect = param.max_reconnect || 5;
+    this.timeout_reconnect = param.timeout_reconnect || 1000;
+    this.connected = false;
     this.connection = null;
     this.count_reconnect = 0;
-    this.count_max_reconnect = max_reconnect || 1000;
-    this.timeout_reconnect = timeout_reconnect || 3000;
   }
 
   /**
@@ -73,7 +88,7 @@ class MyMariaDB {
       this.poolConnection().getConnection((error, connection) => {
         // error connection
         if (error) {
-          console.log({ message: error.message });
+          console.log({ mariadb: error.message });
           return reject("internal server error");
         }
 
@@ -83,7 +98,7 @@ class MyMariaDB {
 
           // error ping
           if (error) {
-            console.log({ message: error.message });
+            console.log({ mariadb: error.message });
             return reject(error.message);
           }
 
@@ -106,12 +121,12 @@ class MyMariaDB {
     connection.connect(async (error) => {
       if (error) {
         this.connected = false;
-        console.log({ message: error.message });
+        console.log({ mariadb: error.message });
         await this.reconnect();
       } else {
         this.connected = true;
         console.log({
-          message: `mariadb connected database ${this.database}`,
+          mariadb: `mariadb connected database ${this.database}`,
         });
       }
     });
@@ -119,12 +134,12 @@ class MyMariaDB {
     connection.on("error", async (error) => {
       if (error) {
         this.connected = false;
-        console.log({ message: error.message });
+        console.log({ mariadb: error.message });
         await this.reconnect();
       } else {
         this.connected = true;
         console.log({
-          message: `mariadb connected database ${this.database}`,
+          mariadb: `mariadb connected database ${this.database}`,
         });
       }
     });
@@ -144,23 +159,27 @@ class MyMariaDB {
     }, this.timeout_reconnect);
   }
 
-  query(query, data) {
+  query(query: string, data: []) {
     return new Promise(async (resolve, reject) => {
       if (this.connection) {
-        this.connection.query(query, data, async (error, result) => {
-          if (error) {
-            console.log({ message: error.message });
-            return reject("data not found");
-          } else {
-            return resolve(result);
+        this.connection.query(
+          query,
+          data,
+          async (error: boolean | any, result: []) => {
+            if (error) {
+              console.log({ mariadb: error.message });
+              return reject("data not found");
+            } else {
+              return resolve(result);
+            }
           }
-        });
+        );
       } else {
-        console.log({ message: "internal server error" });
+        console.log({ mariadb: "internal server error" });
         return reject("internal server error");
       }
     });
   }
 }
 
-module.exports = MyMariaDB;
+export default MyMariaDB;
